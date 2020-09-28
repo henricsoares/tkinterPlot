@@ -1,79 +1,58 @@
-import tkinter as tk  # módulo para animação
-import random  # módulo para números randômicos # noqa: F401
-from time import sleep  # módulo para utilização do delay
-import keyboard  # noqa: F401
-from PIL import ImageTk, Image  # módulo para utilização de imagens
-import tkinter.font as font  # módulo para configuração de fontes
-import canrd  # API para leitura da porta CAN
-
-root = tk.Tk()  # cria a janela principal
-root.attributes('-fullscreen', True)  # configura a janela para fullscreen
-frame = tk.Frame(root, background="#3297a8")   # adiciona um frame a janela principal # noqa: F405, E501
-frame.pack(fill=tk.BOTH, expand=True)   # configura as dimensões do frame # noqa: E501, F405
-my_canvas = tk.Canvas(frame, width=1200, height=600, background='black')  # adiciona um quadro ao frame # noqa: F405, E501
-img = Image.open("truck.png")  # define imagem utilizada no veículo
-photo = ImageTk.PhotoImage(img)  # configura o objeto de imagem
-myFont = font.Font(size=30)  # cria uma configuração de fonte # noqa: E501
-title = tk.Label(frame, text='Lane Plotting', background="#3297a8", foreground='white', pady=35)  # cria o título de aplicação # noqa: E501
-title['font'] = myFont  # atribui a configuração de fonte ao título
-my_canvas.grid(row=0, column=0)  # desabilita linhas e colunas para o quadro
-my_canvas.pack(side=tk.BOTTOM)  # carrega e posiciona o quadro no frame
-lab = tk.Label(my_canvas, image=photo, background='black')  # cria o widget para carregar a imagem # noqa: E501
-lab.place(x=430, y=45)  # posiciona a imagem no quadro
-title.pack(side=tk.TOP)  # carrega e posiciona o título no frame
-llPos = [[350.0, 0.0], [350.0, 150.0], [350.0, 300.0], [350.0, 450.0], [350.0, 605.0]]  # valores iniciais da faixa esquerda # noqa: E501
-lrPos = [[850.0, 0.0], [850.0, 150.0], [850.0, 300.0], [850.0, 450.0], [850.0, 605.0]]  # valores iniciais da faixa diireita # noqa: E501
-lr = my_canvas.create_line(lrPos, fill='yellow', width=20)  # cria a faixa esquerda # noqa: E501
-ll = my_canvas.create_line(llPos, fill='yellow', width=20)  # cria a faixa direita # noqa: E501
-# my_canvas.create_line(600, 0, 600, 600, fill='yellow', width=1)  # linha para calibração da posição da imagem no quadro  # noqa: E501
-x1, y1 = 1200, 600
-x2, y2 = 430, 45
+import tkinter as tk
+'''janela = tk.Tk()
+janela.state('zoomed')
+# janela.attributes('-fullscreen', True)
+frame = tk.Frame(janela, background="#3297a8")
+frame.pack(fill=tk.BOTH, expand=True)'''
 
 
-def blinkt():  # função para efeito visual na imagem, indica ausência de faixas/ sinal # noqa: E501
-    global x1, x2, y1, y2
-    sleep(0.5)  # aguarda 200ms para que o efeito seja visível
-    lab.place(x=x1, y=y1)
-    x1, x2 = x2, x1
-    y1, y2 = y2, y1
+def canvasG(frame, dY, dX):
+    global lado, cima, dx, dy, my_canvas
+    dx, dy = dY, dX
+    lado, cima = (frame.winfo_screenwidth()), (frame.winfo_screenheight())
+    propF = cima/lado
+    propG = dy/dx
+
+    if propG <= propF:
+        while propG <= propF:
+            cima -= 1
+            propF = cima/lado
+
+    cima = (0.8 * cima)
+    lado = cima / propG
+    my_canvas = tk.Canvas(frame, width=lado,
+                          height=cima, background='white')
+    difLine = 0.05 * cima
+    a, b, c, d = [difLine, difLine], [lado - difLine, difLine], [lado - difLine, cima - difLine], [difLine, cima - difLine]  # noqa: E501
+    my_canvas.create_line(a, b, c, d, a, fill='black', width=2)
+    stepX = (b[0] - a[0]) / 5
+    stepY = (d[1] - a[1]) / 5
+    for i in range(0, 6, 1):
+        my_canvas.create_line(difLine + (i * stepX), d[1], difLine + (i * stepX), d[1] + (difLine / 2), fill='black', width=2)  # noqa: E501
+        my_canvas.create_line(a[0], difLine + (i * stepY), a[0] - (difLine / 2), difLine + (i * stepY), fill='black', width=2)  # noqa: E501
+        xLabel = round((dx/5) * i, 2)
+        my_canvas.create_text(difLine + (i * stepX), d[1] + (0.7 * difLine), fill="black", font="Arial 8 bold", text=xLabel)  # noqa: E501
+        yLabel = round((dy - ((dy/5) * i)), 2)
+        my_canvas.create_text(a[0] - (0.5 * difLine), (difLine / 2) + (i * stepY), fill="black", font="Arial 8 bold", text=yLabel)  # noqa: E501
+    return my_canvas
 
 
-conection = (canrd.connect())  # tenta conexão com porta CAN
-print(conection[1])  # exibe o resultado
-conection = conection[0]  # extrai somente a resposta booleana
-while not keyboard.is_pressed('q'):  # loop principal, pressione 'q' para sair
-    my_canvas.delete(ll)  # apaga a faixa esquerda anterior
-    my_canvas.delete(lr)  # apaga a faixa direita anterior
-    data = canrd.canRead(conection)  # efetua leitura da porta CAN se a conexão estiver ok # noqa: E501
-    if data[0]:  # Inicia tratamento dos dados se houver sinais de faixas # noqa: E501
-        data = data[1]  # armazena somente os sinais de faixas
-        # print(data)  # exibe sinais de faixas
-        left = data[1]  # atribui o sinal da faixa esquerda a variavel
-        right = data[0]  # atribui o sinal da direita esquerda a variavel
-        # left = random.uniform(-2.5, -2.25)  # simulação da faixa esquerda
-        # right = random.uniform(2.5, 2.25)  # simulação da faixa direita
-        if left < 0 and right > 0:  # verifica se as faixas estão posicionadas corretamente  # noqa: E501
-            ampl = (abs(left)+right) / 2  # determina a amplitude das faixas
-            labpos = ((left+right)*167) + 430  # determina a posição da imagem de acordo com as faixas # noqa: E501
-        elif left > 0 and right < 0:
-            ampl = (abs(right)+left) / 2
-            labpos = ((left+right)*167) + 430
-        else:  # caso não estejam posicionadas corretamente
-            ampl = 0  # determina amplitude nula
-        if ampl < 3.0 and ampl > 1.5:  # and labpos > 30 and labpos < 830:  # atualiza a tela caso a amplitude e a posição da imagem sejam adequadas # noqa: E501
-            for i in range(4, 0, -1):  # desloca os valores das listas
-                lrPos[i][0] = lrPos[i-1][0]  # faixa direita
-                llPos[i][0] = llPos[i-1][0]  # faixa esquerda
-            lrPos[0][0] = (ampl * 167) + 600  # atribu o valor medido ao primeiro elemento da lista direita # noqa: E501
-            llPos[0][0] = (-ampl * 167) + 600  # atribu o valor medido ao primeiro elemento da lista esquerda # noqa: E501
-            lab.place(x=labpos, y=45)  # reposiciona a imagem
-            lr = my_canvas.create_line(lrPos, fill='yellow', width=20)  # recria a faixa direita # noqa: E501
-            ll = my_canvas.create_line(llPos, fill='yellow', width=20)  # recria a faixa esquerda # noqa: E501
-            sleep(.05)  # aguarda 50ms antes de sair do loop
-        else:  # caso faixas ou amplitude não estejam ok
-            lab.place(x=430, y=45)
-    else:  # caso não haja sinais de faixas
-        blinkt()  # faz a imagem piscar indicando ausência de sinal adequado # noqa: E501
-    root.update()  # atualiza a janela principal
+def canvasP(x, y):
+    if (x <= dx and y <= dy):
+        propY = cima / dy
+        propX = lado / dx
+        # print(cima, propY)
+        nx = x * propX
+        ny = y * propY
+        # print(nx, ny)
+        id = my_canvas.create_oval(nx, ny, nx + 15, ny + 15, fill='red',
+                                   width=0)
+        return id
+    else:
+        print("object out of range")
 
-print((canrd.release())[1])  # libera a porta CAN ao final do programa # noqa: E501
+
+'''my_canvas = canvasG(5, 5)
+canvasP(2.5, 2.5)
+my_canvas.pack(side=tk.BOTTOM)
+janela.mainloop()'''
