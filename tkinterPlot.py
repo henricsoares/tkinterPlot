@@ -92,16 +92,19 @@ for i in range(qtdObj):
     objsCoords.append([random.uniform(-7.9, 7.9), random.uniform(0.1, 4.9)])
     objs.append(tkPlot(objsCoords[i][0], objsCoords[i][1]))
 
-while True:
-    for i in range(len(objs)):
-        xx, yy = objsCoords[i][0], objsCoords[i][1]
-        coords = getPos(xx, yy)
-        xx, yy = coords[0], coords[1]
-        xx = random.uniform(xx - 7.5, xx + 7.5)
-        yy = random.uniform(yy - 7.5, yy + 7.5)
-        coords = [xx - 7.5, yy - 7.5,
-                  xx + 7.5, yy + 7.5]
-        graph.coords(objs[i], coords)
-    janela.update()
-    sleep(.2)
-# janela.mainloop()
+aux = True
+while aux:
+    try:
+        for i in range(len(objs)):
+            xx, yy = objsCoords[i][0], objsCoords[i][1]
+            coords = getPos(xx, yy)
+            xx, yy = coords[0], coords[1]
+            xx = random.uniform(xx - 7.5, xx + 7.5)
+            yy = random.uniform(yy - 7.5, yy + 7.5)
+            coords = [xx - 7.5, yy - 7.5,
+                      xx + 7.5, yy + 7.5]
+            graph.coords(objs[i], coords)
+        janela.update()
+        sleep(.2)
+    except Exception:
+        aux = False
