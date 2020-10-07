@@ -1,7 +1,9 @@
 import tkinter as tk
-import random
+import random  # noqa: F401
 from typing import List
-from time import sleep
+from time import sleep  # noqa: F401
+import canReadRadar as crr  # noqa: F401
+import keyboard  # noqa: F401
 janela = tk.Tk()
 cores = ('#000000', '#808080', '#0000FF', '#00BFFF',
          '#800080', '#8B008B', '#B0C4DE', '#800000',
@@ -15,7 +17,7 @@ objs: List[int] = []
 objsCoords: List[list] = []
 
 
-def tkGraph(window, dY, dX):
+def tkGraph(window, dX, dY):
     global lado, cima, dx, dy, my_canvas, difLine, janela
     window.state('zoomed')
     # janela.attributes('-fullscreen', True)
@@ -23,19 +25,28 @@ def tkGraph(window, dY, dX):
     frame.pack(fill=tk.BOTH, expand=True)
     xLabels, yLabels = [], []
     dy = dY
-    dx = dX
+    dx = dX * 2
     propG = dy/dx
-    xLabels.append(-1 * dx)
-    xLabels.append(-1 * (dx/2))
-    xLabels.append(0)
-    xLabels.append(dx/2)
-    xLabels.append(str(dx) + ' m')
+    if dx % 2 != 0:
+        xLabels.append(-1 * dx/2)
+        xLabels.append(-1 * (dx/4))
+        xLabels.append(0)
+        xLabels.append(dx/4)
+        xLabels.append(str(dx/2) + ' m')
+    else:
+        xLabels.append(int(-1 * dx/2))
+        xLabels.append(int(-1 * (dx/4)))
+        xLabels.append(int(0))
+        xLabels.append(int(dx/4))
+        xLabels.append(str(int(dx/2)) + ' m')
     for i in range(6):
         label = round((dy - ((dy/4) * i)), 2)
-        if(str(label)[2] != '0'):
+        difLabel = label - int(label)
+        if(difLabel != 0.0):
             yLabels.append(label)
+            print(difLabel)
         else:
-            yLabels.append(str(label)[0])
+            yLabels.append(int(label))
     yLabels[0] = str(yLabels[0]) + ' m'
     lado, cima = (frame.winfo_screenwidth()), (frame.winfo_screenheight())
     propF = cima/lado
@@ -57,36 +68,43 @@ def tkGraph(window, dY, dX):
         my_canvas.create_text(difLine + (i * stepX), d[1] + (0.7 * difLine), fill="black", font="Arial 10 bold", text=xLabels[i])  # noqa: E501
         my_canvas.create_text(a[0] - (0.5 * difLine), (difLine * .75) + (i * stepY), fill="black", font="Arial 10 bold", text=yLabels[i])  # noqa: E501
     my_canvas.pack(side=tk.BOTTOM)
+    '''lineX1 = my_canvas.create_line(lado/2, difLine, lado/2, cima - difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
+    lineX2 = my_canvas.create_line(lado * (.25) + (difLine / 2), difLine, lado * (.25) + (difLine / 2), cima - difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
+    lineX3 = my_canvas.create_line(lado * (.75) - (difLine / 2), difLine, lado * (.75) - (difLine / 2), cima - difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
+    lineY1 = my_canvas.create_line(difLine, cima/2, lado - difLine, cima/2, fill='#5F9EA0', width=2)  # noqa: F841, E501
+    lineY2 = my_canvas.create_line(difLine, cima * (.25) + (difLine / 2), lado - difLine, cima * (.25) + (difLine / 2), fill='#5F9EA0', width=2)  # noqa: F841, E501
+    lineY3 = my_canvas.create_line(difLine, cima * (.75) - (difLine / 2), lado - difLine, cima * (.75) - (difLine / 2), fill='#5F9EA0', width=2)  # noqa: F841, E501'''
     return my_canvas
 
 
 def getPos(x, y):
-    propY = (cima - (2 * difLine)) / dy
-    propX = (lado - (2 * difLine)) / (2 * dx)
-    nx = (lado / 2) + (x * propX)
-    ny = cima - difLine - (y * propY)
-    return [nx, ny]
+    if (abs(x) < dx and y < dy and y > 0):
+        propY = (cima - (2 * difLine)) / dy
+        propX = (lado - (2 * difLine)) / (2 * dx)
+        nx = (lado / 2) + (x * propX)
+        ny = cima - difLine - (y * propY)
+        return [nx, ny]
+    else:
+        nx, ny = lado + 1, cima + 1
+        print("object out of range")
+        return [nx, ny]
 
 
 def tkPlot(x, y):
     if (abs(x) < dx and y < dy and y > 0):
+        x = x * 2
         pos = getPos(x, y)
         nx, ny = pos[0], pos[1]
-        '''lineX1 = my_canvas.create_line(lado/2, difLine, lado/2, cima - difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
-        lineX2 = my_canvas.create_line(lado * (.25) + (difLine / 2), difLine, lado * (.25) + (difLine / 2), cima - difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
-        lineX3 = my_canvas.create_line(lado * (.75) - (difLine / 2), difLine, lado * (.75) - (difLine / 2), cima - difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
-        lineY1 = my_canvas.create_line(difLine, cima/2, lado - difLine, cima/2, fill='#5F9EA0', width=2)  # noqa: F841, E501
-        lineY2 = my_canvas.create_line(difLine, cima * (.25) + (difLine / 2), lado - difLine, cima * (.25) + (difLine / 2), fill='#5F9EA0', width=2)  # noqa: F841, E501
-        lineY3 = my_canvas.create_line(difLine, cima * (.75) - (difLine / 2), lado - difLine, cima * (.75) - (difLine / 2), fill='#5F9EA0', width=2)  # noqa: F841, E501'''
         cor = cores[len(objs)]
         id = my_canvas.create_oval(nx - (difLine/7), ny - (difLine/7), nx + (difLine/7), ny + (difLine/7), fill=cor, width=0)  # noqa: E501
         return id
     else:
+        cor = cores[len(objs)]
+        id = my_canvas.create_oval(lado + 1, cima + 1, lado + 1, cima + 1, fill=cor, width=0)  # noqa: E501
         print("object out of range")
 
 
-qtdObj = int(input('Quantidade de objetos:'))
-graph = tkGraph(janela, 5, 8)
+'''qtdObj = int(input('Quantidade de objetos:'))
 
 for i in range(qtdObj):
     objsCoords.append([random.uniform(-7.9, 7.9), random.uniform(0.1, 4.9)])
@@ -107,4 +125,35 @@ while aux:
         janela.update()
         sleep(.2)
     except Exception:
+        aux = False'''
+
+qtdObj = int(input("Quantidade de objetos (máx. 32): "))
+print(crr.connect(qtdObj))
+graph = tkGraph(janela, 50, 80)
+for _ in range(qtdObj):
+    '''data = crr.read(True)
+    x, y = data[1][0], data[2][0]
+    objs.append(tkPlot(x, y))'''
+    objs.append(tkPlot(1, 1))
+
+while not keyboard.is_pressed('q'):
+    try:
+        for i in range(qtdObj):
+            data = crr.read(True)
+            x = data[1][i]
+            y = data[2][i]
+            coords = getPos(x, y)
+            x, y = coords[0], coords[1]
+            coords = [x - 7.5, y - 7.5,
+                      x + 7.5, y + 7.5]
+            graph.coords(objs[i], coords)
+        # sleep(.2)
+    except Exception:
+        # print('algo errado')
         aux = False
+    janela.update()
+print(crr.release())
+
+'''tkGraph(janela, 50, 80)
+tkPlot(0, 79.9)
+janela.mainloop()'''

@@ -19,6 +19,9 @@ def connect():
         return([True, result[1].decode()])
 
 
+auxx = True
+
+
 def release():
     # Release the Channel
     result = objPCAN.Uninitialize(pcb.PCAN_USBBUS1)
@@ -71,7 +74,6 @@ def canRead(conection):
 
 '''status = connect()
 print(status[1])
-auxx = True
 while not keyboard.is_pressed('q') and auxx:
     print(canRead(status[0]))
  print(objPCAN.Read(pcb.PCAN_USBBUS1))
