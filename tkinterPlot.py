@@ -4,6 +4,7 @@ from typing import List
 from time import sleep  # noqa: F401
 import canReadRadar as crr  # noqa: F401
 import keyboard  # noqa: F401
+import math
 janela = tk.Tk()
 cores = ('#000000', '#808080', '#0000FF', '#00BFFF',
          '#800080', '#8B008B', '#B0C4DE', '#800000',
@@ -15,6 +16,8 @@ cores = ('#000000', '#808080', '#0000FF', '#00BFFF',
          '#D2691E', '#D8BFD8', '#D8BFD8', '#DEB887')
 objs: List[int] = []
 objsCoords: List[list] = []
+difLine = 0
+janela.attributes('-fullscreen', True)
 
 
 def tkGraph(window, dX, dY):
@@ -44,7 +47,7 @@ def tkGraph(window, dX, dY):
         difLabel = label - int(label)
         if(difLabel != 0.0):
             yLabels.append(label)
-            print(difLabel)
+            # print(difLabel)
         else:
             yLabels.append(int(label))
     yLabels[0] = str(yLabels[0]) + ' m'
@@ -67,6 +70,22 @@ def tkGraph(window, dX, dY):
         my_canvas.create_line([a[0], difLine + (i * stepY), a[0] - (difLine / 3), difLine + (i * stepY)], fill='black', width=2)  # noqa: E501
         my_canvas.create_text(difLine + (i * stepX), d[1] + (0.7 * difLine), fill="black", font="Arial 10 bold", text=xLabels[i])  # noqa: E501
         my_canvas.create_text(a[0] - (0.5 * difLine), (difLine * .75) + (i * stepY), fill="black", font="Arial 10 bold", text=yLabels[i])  # noqa: E501
+    tg = math.tan(45 * math.pi / 180)
+    coY = cima - (tg * ((lado / 2) - difLine)) - difLine
+    '''my_canvas.create_line(lado/2, cima - difLine, difLine,
+                          cima - (tg * ((lado / 2) - difLine)) - difLine,  # noqa: E501
+                          fill='blue', width=2)
+    my_canvas.create_line(lado/2, cima - difLine, lado - difLine,
+                          cima - (tg * ((lado / 2) - difLine)) - difLine,  # noqa: E501
+                          fill='blue', width=2)'''
+    points = [difLine, coY,
+              lado/2, cima - difLine,
+              lado - difLine, coY,
+              lado - difLine, difLine,
+              difLine, difLine,
+              difLine, coY]
+    my_canvas.create_polygon(points, outline='black',
+                             fill='#28d8ff', width=2)
     my_canvas.pack(side=tk.BOTTOM)
     '''lineX1 = my_canvas.create_line(lado/2, difLine, lado/2, cima - difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
     lineX2 = my_canvas.create_line(lado * (.25) + (difLine / 2), difLine, lado * (.25) + (difLine / 2), cima - difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
@@ -86,7 +105,7 @@ def getPos(x, y):
         return [nx, ny]
     else:
         nx, ny = lado + 1, cima + 1
-        print("object out of range")
+        # print("object out of range")
         return [nx, ny]
 
 
@@ -96,18 +115,21 @@ def tkPlot(x, y):
         pos = getPos(x, y)
         nx, ny = pos[0], pos[1]
         cor = cores[len(objs)]
-        id = my_canvas.create_oval(nx - (difLine/7), ny - (difLine/7), nx + (difLine/7), ny + (difLine/7), fill=cor, width=0)  # noqa: E501
+        id = my_canvas.create_oval(nx - (difLine/10), ny - (difLine/10), nx + (difLine/10), ny + (difLine/10), fill=cor, width=0)  # noqa: E501
         return id
     else:
         cor = cores[len(objs)]
         id = my_canvas.create_oval(lado + 1, cima + 1, lado + 1, cima + 1, fill=cor, width=0)  # noqa: E501
-        print("object out of range")
+        # print("object out of range")
 
 
-'''qtdObj = int(input('Quantidade de objetos:'))
+# qtdObj = int(input('Quantidade de objetos:'))
+qtdObj = 32
+xl, yl = 50, 90
+graph = tkGraph(janela, xl, yl)
 
 for i in range(qtdObj):
-    objsCoords.append([random.uniform(-7.9, 7.9), random.uniform(0.1, 4.9)])
+    objsCoords.append([random.uniform(-xl, xl), random.uniform(0.1, yl)])
     objs.append(tkPlot(objsCoords[i][0], objsCoords[i][1]))
 
 aux = True
@@ -119,21 +141,19 @@ while aux:
             xx, yy = coords[0], coords[1]
             xx = random.uniform(xx - 7.5, xx + 7.5)
             yy = random.uniform(yy - 7.5, yy + 7.5)
-            coords = [xx - 7.5, yy - 7.5,
-                      xx + 7.5, yy + 7.5]
+            coords = [xx - (difLine/10), yy - (difLine/10),
+                      xx + (difLine/10), yy + (difLine/10)]
             graph.coords(objs[i], coords)
         janela.update()
         sleep(.2)
     except Exception:
-        aux = False'''
+        aux = False
 
-qtdObj = int(input("Quantidade de objetos (máx. 32): "))
-print(crr.connect(qtdObj))
+# qtdObj = int(input("Quantidade de objetos (máx. 32): "))
+'''qtdObj = 32
+print((crr.connect(qtdObj))[1])
 graph = tkGraph(janela, 50, 80)
 for _ in range(qtdObj):
-    '''data = crr.read(True)
-    x, y = data[1][0], data[2][0]
-    objs.append(tkPlot(x, y))'''
     objs.append(tkPlot(1, 1))
 
 while not keyboard.is_pressed('q'):
@@ -144,15 +164,14 @@ while not keyboard.is_pressed('q'):
             y = data[2][i]
             coords = getPos(x, y)
             x, y = coords[0], coords[1]
-            coords = [x - 7.5, y - 7.5,
-                      x + 7.5, y + 7.5]
+            coords = [x - (difLine/10), y - (difLine/10),
+                      x + (difLine/10), y + (difLine/10)]
             graph.coords(objs[i], coords)
-        # sleep(.2)
+            janela.update()
     except Exception:
         # print('algo errado')
         aux = False
-    janela.update()
-print(crr.release())
+print((crr.release())[1])'''
 
 '''tkGraph(janela, 50, 80)
 tkPlot(0, 79.9)
