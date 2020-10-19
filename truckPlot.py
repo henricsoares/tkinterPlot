@@ -15,6 +15,12 @@ my_canvas = tk.Canvas(frame, width=lado, height=cima, background='black')  # noq
 img = Image.open("truck.png")
 photo = ImageTk.PhotoImage(img)
 pw, ph = photo.width(), photo.height()
+propT = pw/ph
+pw = .3*lado
+ph = pw/propT
+img = img.resize((int(pw), int(ph)), Image.ANTIALIAS)
+photo = ImageTk.PhotoImage(img)
+pw, ph = photo.width(), photo.height()
 metro = pw/2
 myFont = font.Font(size=30)  # noqa: E501
 title = tk.Label(frame, text='Lane Plotting', background="#3297a8", foreground='white')  # noqa: E501
@@ -41,21 +47,21 @@ def blinkt():  # noqa: E501
     y1, y2 = y2, y1
 
 
-conection = (canrd.connect())
+'''conection = (canrd.connect())
 print(conection[1])
-conection = conection[0]
+conection = conection[0]'''
 aux = True
 while not keyboard.is_pressed('q') and aux:
     try:
         my_canvas.delete(ll)
         my_canvas.delete(lr)
-        data = canrd.canRead(conection)  # noqa: E501
-        if data[0]:  # noqa: E501
-            data = data[1]
+        '''data = canrd.canRead(conection)  # noqa: E501'''
+        if True:  # data[0]:  # noqa: E501
+            '''data = data[1]
             # print(data)
             left = data[1]
-            right = data[0]
-            '''left = random.uniform(-2, -1.9)  # simulação da faixa esquerda
+            right = data[0]'''
+            left = random.uniform(-2, -1.9)  # simulação da faixa esquerda
             right = random.uniform(2, 1.9)  # simulação da faixa direita'''
             if left < 0 and right > 0:
                 ampl = (abs(left)+right) / 2
@@ -82,5 +88,5 @@ while not keyboard.is_pressed('q') and aux:
         root.update()
     except Exception:
         pass
-        # aux = False
-print((canrd.release())[1])  # noqa: E501
+        aux = False
+'''print((canrd.release())[1])  # noqa: E501'''

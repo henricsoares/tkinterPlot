@@ -96,55 +96,93 @@ def tkGraph(Window, dX, dY):
     return my_canvas
 
 
-def getPos(x, y):
-    if (abs(x) < dx and y < dy and y > 0):
-        propY = (cima - (2 * difLine)) / dy
-        propX = (lado - (2 * difLine)) / (2 * dx)
-        nx = (lado / 2) + (x * propX)
-        ny = cima - difLine - (y * propY)
-        return [nx, ny]
-    else:
-        nx, ny = lado + difLine, cima + difLine
-        # print("object out of range")
+def getPos(x, y, form):
+    propY = (cima - (2 * difLine)) / dy
+    propX = (lado - (2 * difLine)) / (2 * dx)
+    nx = (lado / 2) + (x * propX)
+    ny = cima - difLine - (y * propY)
+    px = difLine * .3
+    h = px * (math.sqrt(3) / 2)
+    if form == 'circle':
+        coords = [nx - (difLine/10), ny - (difLine/10),
+                  nx + (difLine/10), ny + (difLine/10)]
+        return coords
+    if form == 'top':
+        coords = [nx - (px/2), difLine + h + px*.05,  # left down
+                  nx + (px/2), difLine + h + px*.05,  # right down # noqa: E501
+                  nx, difLine + px*.05,  # top
+                  nx - (px/2), difLine + h + px*.05]
+        return coords
+    if form == 'right':
+        coords = [(lado) - h - difLine, ny - (px/2),
+                  (lado) - h - difLine, ny + (px/2),
+                  (lado) - difLine, ny,
+                  (lado) - h - difLine, ny - (px/2)]
+        return coords
+    if form == 'left':
+        coords = [h + difLine, ny + (px/2),
+                  h + difLine, ny - (px/2),
+                  difLine, ny,
+                  h + difLine, ny + (px/2)]
+        return coords
+    if form == 'none':
         return [nx, ny]
 
 
-def tkPlot(x, y):
-    if (abs(x) < dx and y < dy and y > 0):
+def tkPlot(x, y, obj):
+    if (abs(x*2) < .95*dx and y < .95*dy and y > .05*y):
         x = x * 2
-        pos = getPos(x, y)
-        nx, ny = pos[0], pos[1]
-        cor = cores[len(objs)]
-        id = my_canvas.create_oval(nx - (difLine/10), ny - (difLine/10), nx + (difLine/10), ny + (difLine/10), fill=cor, width=1)  # noqa: E501
+        coords = getPos(x, y, 'circle')
+        cor = cores[i]
+        id = my_canvas.create_oval(coords, fill=cor, width=1)  # noqa: E501
         return id
     else:
-        cor = cores[len(objs)]
-        id = my_canvas.create_oval(lado + difLine, cima + difLine, lado + difLine, cima + difLine, fill=cor, width=0)  # noqa: E501
-        # print("object out of range")
+        cor = cores[i]
+        px = difLine * .3
+        if y > .95*dy and abs(x*2) < .95*dx:  # top
+            # print('top')
+            x = x * 2
+            coords = getPos(x, y, 'top')
+            id = my_canvas.create_polygon(coords,
+                                          outline='black', fill=cor,
+                                          width=px*.05)
+            return id
+        if y < .95*dy and (x*2) > .95*dx:  # right
+            # print('right')
+            coords = getPos(x, y, 'right')
+            id = my_canvas.create_polygon(coords,
+                                          outline='black', fill=cor,
+                                          width=px*.05)
+            return id
+        if y < .95*dy and (2*x) < (.95*-dx):  # left
+            # print('left')
+            coords = getPos(x, y, 'left')
+            id = my_canvas.create_polygon(coords,
+                                          outline='black', fill=cor,
+                                          width=px*.05)
+            return id
 
 
 # qtdObj = int(input('Quantidade de objetos:'))
 qtdObj = 32  # number of objects
-xl, yl = 25, 50  # x and y assis limits
+xl, yl = 25, 45  # x and y assis limits
 graph = tkGraph(window, xl, yl)  # calling the function
 
 for i in range(qtdObj):
-    objsCoords.append([random.uniform(-(.9*xl), .9*xl),
-                      random.uniform(.1*yl, .9*yl)])
-    objs.append(tkPlot(objsCoords[i][0], objsCoords[i][1]))
-
-aux = True
-while aux:
+    objsCoords.append([random.uniform(-(1.1*xl), 1.1*xl),
+                      random.uniform(yl/2, 1.1*yl)])
+    objs.append(tkPlot(objsCoords[i][0], objsCoords[i][1], i))
+    # print(graph.type(objs[i]))
+# window.mainloop()
+while not keyboard.is_pressed('q'):
     try:
         for i in range(len(objs)):
-            xx, yy = objsCoords[i][0], objsCoords[i][1]
-            coords = getPos(xx, yy)
-            xx, yy = coords[0], coords[1]
-            xx = random.uniform(xx - 7.5, xx + 7.5)
-            yy = random.uniform(yy - 7.5, yy + 7.5)
-            coords = [xx - (difLine/10), yy - (difLine/10),
-                      xx + (difLine/10), yy + (difLine/10)]
-            graph.coords(objs[i], coords)
+            xx, yy = random.uniform(objsCoords[i][0]*.95,
+                                    objsCoords[i][0]*1.05), random.uniform(objsCoords[i][1]*.95,  # noqa: E501
+                                                                           objsCoords[i][1]*1.05)  # noqa: E501
+            graph.delete(objs[i])
+            window.update()
+            objs[i] = tkPlot(xx, yy, i)
         window.update()
         sleep(.2)
     except Exception:
