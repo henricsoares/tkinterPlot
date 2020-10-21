@@ -5,6 +5,7 @@ from time import sleep  # noqa: F401
 import canReadRadar as crr  # noqa: F401
 import keyboard  # noqa: F401
 import math
+from tkinter import messagebox  # noqa: F401
 window = tk.Tk()
 cores = ('#000000', '#808080', '#0000FF', '#00BFFF',
          '#800080', '#8B008B', '#B0C4DE', '#800000',
@@ -60,6 +61,7 @@ def tkGraph(Window, dX, dY):
     cima = (0.85 * cima)
     lado = cima / propG
     my_canvas = tk.Canvas(frame, width=lado, height=cima, background='white')
+    my_canvas.pack(side=tk.TOP)
     difLine = 0.075 * cima
     a, b, c, d = [difLine, difLine], [lado - difLine, difLine], [lado - difLine, cima - difLine], [difLine, cima - difLine]  # noqa: E501
     my_canvas.create_line(a, b, c, d, a, fill='black', width=2)
@@ -72,12 +74,6 @@ def tkGraph(Window, dX, dY):
         my_canvas.create_text(a[0] - (0.5 * difLine), (difLine * .75) + (i * stepY), fill="black", font="Arial 10 bold", text=yLabels[i])  # noqa: E501
     tg = math.tan(45 * math.pi / 180)
     coY = cima - (tg * ((lado / 2) - difLine)) - difLine
-    '''my_canvas.create_line(lado/2, cima - difLine, difLine,
-                          cima - (tg * ((lado / 2) - difLine)) - difLine,  # noqa: E501
-                          fill='blue', width=2)
-    my_canvas.create_line(lado/2, cima - difLine, lado - difLine,
-                          cima - (tg * ((lado / 2) - difLine)) - difLine,  # noqa: E501
-                          fill='blue', width=2)'''
     points = [difLine, coY,
               lado/2, cima - difLine,
               lado - difLine, coY,
@@ -86,7 +82,6 @@ def tkGraph(Window, dX, dY):
               difLine, coY]
     my_canvas.create_polygon(points, outline='black',
                              fill='#28d8ff', width=2)
-    my_canvas.pack(side=tk.BOTTOM)
     lineX1 = my_canvas.create_line(lado/2, difLine, lado/2, cima - difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
     lineX2 = my_canvas.create_line(lado * (.25) + (difLine / 2), difLine, lado * (.25) + (difLine / 2), cima - difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
     lineX3 = my_canvas.create_line(lado * (.75) - (difLine / 2), difLine, lado * (.75) - (difLine / 2), cima - difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
@@ -130,16 +125,16 @@ def getPos(x, y, form):
 
 
 def tkPlot(x, y, obj):
-    if (abs(x*2) < .95*dx and y < .95*dy and y > .05*y):
+    if (abs(x*2) <= .95*dx and y <= .95*dy and y >= .05*y):
         x = x * 2
         coords = getPos(x, y, 'circle')
-        cor = cores[i]
+        cor = cores[obj]
         id = my_canvas.create_oval(coords, fill=cor, width=1)  # noqa: E501
         return id
     else:
-        cor = cores[i]
+        cor = cores[obj]
         px = difLine * .3
-        if y > .95*dy and abs(x*2) < .95*dx:  # top
+        if y > .95*dy and abs(x*2) <= .95*dx:  # top
             # print('top')
             x = x * 2
             coords = getPos(x, y, 'top')
@@ -147,14 +142,14 @@ def tkPlot(x, y, obj):
                                           outline='black', fill=cor,
                                           width=px*.05)
             return id
-        if y < .95*dy and (x*2) > .95*dx:  # right
+        if y <= .95*dy and (x*2) > .95*dx:  # right
             # print('right')
             coords = getPos(x, y, 'right')
             id = my_canvas.create_polygon(coords,
                                           outline='black', fill=cor,
                                           width=px*.05)
             return id
-        if y < .95*dy and (2*x) < (.95*-dx):  # left
+        if y <= .95*dy and (2*x) < (.95*-dx):  # left
             # print('left')
             coords = getPos(x, y, 'left')
             id = my_canvas.create_polygon(coords,
@@ -163,18 +158,16 @@ def tkPlot(x, y, obj):
             return id
 
 
-# qtdObj = int(input('Quantidade de objetos:'))
 qtdObj = 32  # number of objects
-xl, yl = 25, 45  # x and y assis limits
+xl, yl = 20, 40  # x and y assis limits
 graph = tkGraph(window, xl, yl)  # calling the function
 
 for i in range(qtdObj):
     objsCoords.append([random.uniform(-(1.1*xl), 1.1*xl),
                       random.uniform(yl/2, 1.1*yl)])
     objs.append(tkPlot(objsCoords[i][0], objsCoords[i][1], i))
-    # print(graph.type(objs[i]))
-# window.mainloop()
-while not keyboard.is_pressed('q'):
+aux = True
+while aux and not keyboard.is_pressed('q'):
     try:
         for i in range(len(objs)):
             xx, yy = random.uniform(objsCoords[i][0]*.95,
@@ -212,5 +205,5 @@ while not keyboard.is_pressed('q'):  # plotting data from can
 print((crr.release())[1])'''
 
 '''tkGraph(window, 50, 80)
-tkPlot(0, 79.9)
-window.mainloop()'''
+tkPlot(0, 79.9)'''
+window.mainloop()
