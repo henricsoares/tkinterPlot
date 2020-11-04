@@ -4,10 +4,10 @@ from time import sleep  # módulo para utilização do delay
 import keyboard  # noqa: F401
 from PIL import ImageTk, Image  # módulo para utilização de imagens
 import tkinter.font as font  # módulo para configuração de fontes
-import canrd  # API para leitura da porta CAN
+import canrd  # API para leitura da porta CAN # noqa: F401
 
 root = tk.Tk()  # cria a janela principal
-root.attributes('-fullscreen', True)  # configura a janela para fullscreen
+# root.attributes('-fullscreen', True)  # configura a janela para fullscreen
 frame = tk.Frame(root, background="#3297a8")   # adiciona um frame a janela principal # noqa: F405, E501
 frame.pack(fill=tk.BOTH, expand=True)   # configura as dimensões do frame # noqa: E501, F405
 my_canvas = tk.Canvas(frame, width=1200, height=600, background='black')  # adiciona um quadro ao frame # noqa: F405, E501
@@ -38,42 +38,46 @@ def blinkt():  # função para efeito visual na imagem, indica ausência de faix
     y1, y2 = y2, y1  # inverte as variáveis y1 e y2 simultaneamente
 
 
-conection = (canrd.connect())  # tenta conexão com porta CAN
+'''conection = (canrd.connect())  # tenta conexão com porta CAN
 print(conection[1])  # exibe o resultado
-conection = conection[0]  # extrai somente a resposta booleana
-while not keyboard.is_pressed('q'):  # loop principal, pressione 'q' para sair
-    my_canvas.delete(ll)  # apaga a faixa esquerda anterior
-    my_canvas.delete(lr)  # apaga a faixa direita anterior
-    data = canrd.canRead(conection)  # efetua leitura da porta CAN se a conexão estiver ok # noqa: E501
-    if data[0]:  # Inicia tratamento dos dados se houver sinais de faixas # noqa: E501
-        data = data[1]  # armazena somente os sinais de faixas
-        # print(data)  # exibe sinais de faixas
-        left = data[1]  # atribui o sinal da faixa esquerda a variavel
-        right = data[0]  # atribui o sinal da direita esquerda a variavel
-        # left = random.uniform(-2.5, -2.25)  # simulação da faixa esquerda
-        # right = random.uniform(2.5, 2.25)  # simulação da faixa direita
-        if left < 0 and right > 0:  # verifica se as faixas estão posicionadas corretamente  # noqa: E501
-            ampl = (abs(left)+right) / 2  # determina a amplitude das faixas
-            labpos = ((left+right)*167) + 430  # determina a posição da imagem de acordo com as faixas # noqa: E501
-        elif left > 0 and right < 0:  # verifica se as faixas estão posicionadas corretamente  # noqa: E501
-            ampl = (abs(right)+left) / 2  # determina a amplitude das faixas
-            labpos = ((left+right)*167) + 430  # determina a posição da imagem de acordo com as faixas # noqa: E501
-        else:  # caso não estejam posicionadas corretamente
-            ampl = 0  # determina amplitude nula
-        if ampl < 3.0 and ampl > 1.5:  # and labpos > 30 and labpos < 830:  # atualiza a tela caso a amplitude e a posição da imagem sejam adequadas # noqa: E501
-            for i in range(4, 0, -1):  # desloca os valores das listas
-                lrPos[i][0] = lrPos[i-1][0]  # faixa direita
-                llPos[i][0] = llPos[i-1][0]  # faixa esquerda
-            lrPos[0][0] = (ampl * 167) + 600  # atribu o valor medido ao primeiro elemento da lista direita # noqa: E501
-            llPos[0][0] = (-ampl * 167) + 600  # atribu o valor medido ao primeiro elemento da lista esquerda # noqa: E501
-            lab.place(x=labpos, y=45)  # reposiciona a imagem
-            lr = my_canvas.create_line(lrPos, fill='yellow', width=20)  # recria a faixa direita # noqa: E501
-            ll = my_canvas.create_line(llPos, fill='yellow', width=20)  # recria a faixa esquerda # noqa: E501
-            sleep(.05)  # aguarda 50ms antes de sair do loop
-        else:  # caso faixas ou amplitude não estejam ok
-            lab.place(x=430, y=45)  # coloca o veículo na posição inicial
-    else:  # caso não haja sinais de faixas
-        blinkt()  # faz a imagem piscar indicando ausência de sinal adequado # noqa: E501
-    root.update()  # atualiza a janela principal
-
-print((canrd.release())[1])  # libera a porta CAN ao final do programa # noqa: E501
+conection = conection[0]'''  # extrai somente a resposta booleana
+aux = False
+while aux and not keyboard.is_pressed('q'):  # loop principal, pressione 'q' para sair  # noqa: E501
+    try:
+        my_canvas.delete(ll)  # apaga a faixa esquerda anterior
+        my_canvas.delete(lr)  # apaga a faixa direita anterior
+        # data = canrd.canRead(conection)  # efetua leitura da porta CAN se a conexão estiver ok # noqa: E501
+        if True:  # data[0]:  # Inicia tratamento dos dados se houver sinais de faixas # noqa: E501
+            # data = data[1]  # armazena somente os sinais de faixas
+            # print(data)  # exibe sinais de faixas
+            # left = data[1]  # atribui o sinal da faixa esquerda a variavel
+            # right = data[0]  # atribui o sinal da direita esquerda a variavel
+            left = random.uniform(-2.5, -2.25)  # simulação da faixa esquerda
+            right = random.uniform(2.5, 2.25)  # simulação da faixa direita
+            if left < 0 and right > 0:  # verifica se as faixas estão posicionadas corretamente  # noqa: E501
+                ampl = (abs(left)+right) / 2  # determina a amplitude das faixas  # noqa: E501
+                labpos = ((left+right)*167) + 430  # determina a posição da imagem de acordo com as faixas # noqa: E501
+            elif left > 0 and right < 0:  # verifica se as faixas estão posicionadas corretamente  # noqa: E501
+                ampl = (abs(right)+left) / 2  # determina a amplitude das faixas  # noqa: E501
+                labpos = ((left+right)*167) + 430  # determina a posição da imagem de acordo com as faixas # noqa: E501
+            else:  # caso não estejam posicionadas corretamente
+                ampl = 0  # determina amplitude nula
+            if ampl < 3.0 and ampl > 1.5:  # and labpos > 30 and labpos < 830:  # atualiza a tela caso a amplitude e a posição da imagem sejam adequadas # noqa: E501
+                for i in range(4, 0, -1):  # desloca os valores das listas
+                    lrPos[i][0] = lrPos[i-1][0]  # faixa direita
+                    llPos[i][0] = llPos[i-1][0]  # faixa esquerda
+                lrPos[0][0] = (ampl * 167) + 600  # atribu o valor medido ao primeiro elemento da lista direita # noqa: E501
+                llPos[0][0] = (-ampl * 167) + 600  # atribu o valor medido ao primeiro elemento da lista esquerda # noqa: E501
+                lab.place(x=labpos, y=45)  # reposiciona a imagem
+                lr = my_canvas.create_line(lrPos, fill='yellow', width=20)  # recria a faixa direita # noqa: E501
+                ll = my_canvas.create_line(llPos, fill='yellow', width=20)  # recria a faixa esquerda # noqa: E501
+                sleep(.05)  # aguarda 50ms antes de sair do loop
+            else:  # caso faixas ou amplitude não estejam ok
+                lab.place(x=430, y=45)  # coloca o veículo na posição inicial
+        else:  # caso não haja sinais de faixas
+            blinkt()  # faz a imagem piscar indicando ausência de sinal adequado # noqa: E501
+        root.update()  # atualiza a janela principal
+    except Exception:
+        aux = False
+# print((canrd.release())[1])  # libera a porta CAN ao final do programa # noqa: E501
+root.mainloop()

@@ -1,10 +1,9 @@
 import tkinter as tk
 import random  # noqa: F401
-from time import sleep
-import keyboard  # noqa: F401
 from PIL import ImageTk, Image
 import tkinter.font as font
 import canrd  # noqa: F401
+from time import sleep
 
 root = tk.Tk()
 root.attributes('-fullscreen', True)
@@ -21,7 +20,7 @@ ph = pw/propT
 img = img.resize((int(pw), int(ph)), Image.ANTIALIAS)
 photo = ImageTk.PhotoImage(img)
 pw, ph = photo.width(), photo.height()
-metro = pw/2
+metro = (pw/2)*1.0024465
 myFont = font.Font(size=30)  # noqa: E501
 title = tk.Label(frame, text='Lane Plotting', background="#3297a8", foreground='white')  # noqa: E501
 title['font'] = myFont
@@ -34,7 +33,7 @@ lrPos = [[4*lado/5, 0.0], [4*lado/5, cima/4], [4*lado/5, 2*cima/4], [4*lado/5, 3
 lw = .02*lado
 lr = my_canvas.create_line(lrPos, fill='yellow', width=lw)  # noqa: E501
 ll = my_canvas.create_line(llPos, fill='yellow', width=lw)  # noqa: E501
-# my_canvas.create_line(lado/2, 0, lado/2, cima, fill='yellow', width=1)  # noqa: E501
+# my_canvas.create_line((lado/2)-metro, 0, (lado/2)-metro, cima, fill='yellow', width=1)  # noqa: E501
 x1, y1 = lado, cima
 x2, y2 = (lado/2)-(pw/2), (cima/2)-(ph/2)
 
@@ -47,31 +46,50 @@ def blinkt():  # noqa: E501
     y1, y2 = y2, y1
 
 
-'''conection = (canrd.connect())
+conection = (canrd.connect())
 print(conection[1])
-conection = conection[0]'''
+conection = conection[0]
 aux = True
-while not keyboard.is_pressed('q') and aux:
+while aux:
     try:
         my_canvas.delete(ll)
         my_canvas.delete(lr)
-        '''data = canrd.canRead(conection)  # noqa: E501'''
-        if True:  # data[0]:  # noqa: E501
-            '''data = data[1]
+        data = canrd.canRead(conection)  # noqa: E501
+        if data[0]:  # noqa: E501
+            data = data[1]
             # print(data)
             left = data[1]
-            right = data[0]'''
-            left = random.uniform(-2, -1.9)  # simulação da faixa esquerda
+            right = data[0]
+            '''left = random.uniform(-3, -2.9)  # simulação da faixa esquerda
             right = random.uniform(2, 1.9)  # simulação da faixa direita'''
             if left < 0 and right > 0:
                 ampl = (abs(left)+right) / 2
-                labpos = ((left+right)*metro) + (lado/2)-(pw/2)  # noqa: E501
-            elif left > 0 and right < 0:  # noqa: E501
+                labpos = ((ampl - right)*metro) + (lado/2)-(pw/2)  # noqa: E501
+                # print('- +', ampl)
+            elif left > 0 and right < 0:
                 ampl = (abs(right)+left) / 2
-                labpos = ((left+right)*metro) + (lado/2)-(pw/2)  # noqa: E501
-            else:
-                ampl = 0
-            if ampl < 4.0 and ampl > 1:  # noqa: E501
+                labpos = ((ampl - left)*metro) + (lado/2)-(pw/2)  # noqa: E501
+                # print('+ -', ampl)
+            elif left > 0 and right > 0:
+                if right >= left:
+                    ampl = (right - left) / 2
+                    labpos = ((ampl - right)*metro) + (lado/2)-(pw/2)
+                    # print('+ +', ampl)
+                else:
+                    ampl = (left - right) / 2
+                    labpos = ((-ampl - right)*metro) + (lado/2)-(pw/2)
+                    # print('+ +', ampl)
+            elif left < 0 and right < 0:
+                if left <= right:
+                    ampl = (abs(left) - abs(right)) / 2
+                    labpos = ((ampl - right)*metro) + (lado/2)-(pw/2)
+                    # print('- -', ampl)
+                else:
+                    ampl = (abs(right) - abs(left)) / 2
+                    labpos = ((-ampl - right)*metro) + (lado/2)-(pw/2)
+                    # print('- -', ampl)
+
+            if ampl <= 4.0 and ampl >= 1:  # noqa: E501
                 for i in range(4, 0, -1):
                     lrPos[i][0] = lrPos[i-1][0]
                     llPos[i][0] = llPos[i-1][0]
@@ -80,13 +98,11 @@ while not keyboard.is_pressed('q') and aux:
                 lab.place(x=labpos, y=(cima/2)-(ph/2))
                 lr = my_canvas.create_line(lrPos, fill='yellow', width=lw)  # noqa: E501
                 ll = my_canvas.create_line(llPos, fill='yellow', width=lw)  # noqa: E501
-                sleep(.1)
             else:
                 lab.place(x=(lado/2)-(pw/2), y=(cima/2)-(ph/2))
         else:
             blinkt()  # noqa: E501
         root.update()
     except Exception:
-        pass
         aux = False
-'''print((canrd.release())[1])  # noqa: E501'''
+print((canrd.release())[1])  # noqa: E501

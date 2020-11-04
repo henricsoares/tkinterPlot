@@ -5,6 +5,7 @@ from typing import List
 import random  # noqa: F401
 import keyboard  # noqa: F401
 from time import sleep  # noqa: F401
+import canReadRadar as crr  # noqa: F401
 
 window = tk.Tk()
 frame = tk.Frame()
@@ -67,24 +68,19 @@ def getD(propG):
 
 
 def getLabels(dx, dy):
-    xLabels, yLabels = [], []
     dx = dx * 2
-    if dx % 2 != 0:
-        xLabels.append(-1 * dx/2)
-        xLabels.append(-1 * (dx/4))
-        xLabels.append(0)
-        xLabels.append(dx/4)
-        xLabels.append(str(dx/2) + ' m')
-    else:
-        xLabels.append(int(-1 * dx/2))
-        xLabels.append(int(-1 * (dx/4)))
-        xLabels.append(int(0))
-        xLabels.append(int(dx/4))
-        xLabels.append(str(int(dx/2)) + ' m')
+    xLabels, yLabels, xs = [], [], [-dx/2, -dx/4, 0, dx/4, dx/2]
+    for i in range(len(xs)):
+        if (xs[i]-int(xs[i])) != 0.0:
+            xLabels.append(xs[i])
+        else:
+            xLabels.append(int(xs[i]))
+    xLabels[len(xLabels)-1] = str(xLabels[len(xLabels)-1]) + ' m'
+
     for i in range(6):
         label = round((dy - ((dy/4) * i)), 2)
-        difLabel = label - int(label)
-        if(difLabel != 0.0):
+        difLabelY = label - int(label)
+        if(difLabelY != 0.0):
             yLabels.append(label)
         else:
             yLabels.append(int(label))
@@ -252,20 +248,60 @@ def startPlot():
                                             objsCoords[i][0]*1.05), random.uniform(objsCoords[i][1]*.95,  # noqa: E501
                                                                                    objsCoords[i][1]*1.05)  # noqa: E501
                     canvas.delete(objs[i])
-                    window.update()
                     objs[i] = tkPlot(xx, yy, x, y, i)
-                window.update()
+                    window.update()
                 sleep(.15)
             except Exception:
                 aux = False
+            pass
     else:
         pass
+
+
+def plotOnline():
+    connect = crr.connect(qtdObj)
+    messagebox.showinfo(connect[1],
+                        "Connection ok")
+    status = connect[0]
+    if status:
+        global aux, objs
+        if not aux:
+            aux = True
+            for i in range(len(objs)):
+                canvas.delete(objs[i])
+                window.update()
+            objs = []
+            data = crr.read(status)
+            xRead = data[1]
+            yRead = data[2]
+            for i in range(qtdObj):
+                objs.append(tkPlot(xRead[i], yRead[i], x, y, i))  # noqa: E501
+
+            while aux and not keyboard.is_pressed('q'):
+                try:
+                    data = crr.read(status)
+                    xRead = data[1]
+                    yRead = data[2]
+                    for i in range(len(objs)):
+                        canvas.delete(objs[i])
+                        objs[i] = tkPlot(xRead[i], yRead[i], x, y, i)
+                    window.update()
+                except Exception:
+                    aux = False
+        else:
+            pass
+    else:
+        messagebox.showinfo("No connection",
+                            connect[1])
 
 
 def stopPlot():
     global aux
     if aux:
         aux = False
+        release = crr.release()
+        messagebox.showinfo(release[1],
+                            'Can released')
     else:
         pass
 
@@ -274,20 +310,21 @@ canvas = tkGraph(window, x, y)
 canvas.pack(side=tk.TOP)
 dims = getD(y/(2*x))
 menu = tk.Canvas(frame, width=dims[0],
-                 height=(dims[1]/.8)*.2, background='white')
-menu.pack(side=tk.TOP)
+                 height=(dims[1]/.8)*.2,
+                 background='#3297a8', bd=0, highlightthickness=0)
 B1 = tk.Button(menu, text="Resize", command=resizeCanvas)
-B2 = tk.Button(menu, text="Start", command=startPlot)
+B2 = tk.Button(menu, text="Start", command=plotOnline)
 B3 = tk.Button(menu, text="Stop", command=stopPlot)
-E1 = tk.Entry(menu, bd=5, width=4)
-E2 = tk.Entry(menu, bd=5, width=4)
+E1 = tk.Entry(menu, bd=5, width=3)
+E2 = tk.Entry(menu, bd=5, width=3)
 L1 = tk.Label(menu, text="X")
 L2 = tk.Label(menu, text="Y")
 L1.pack(side=tk.LEFT)
 E1.pack(side=tk.LEFT)
 L2.pack(side=tk.LEFT)
 E2.pack(side=tk.LEFT)
-B1.pack(side=tk.LEFT)
+B1.pack(side=tk.LEFT, padx=(0, 50))
 B3.pack(side=tk.RIGHT)
 B2.pack(side=tk.RIGHT)
+menu.pack(side=tk.TOP)
 window.mainloop()

@@ -158,7 +158,7 @@ def tkPlot(x, y, obj):
             return id
 
 
-qtdObj = 32  # number of objects
+'''qtdObj = 32  # number of objects
 xl, yl = 20, 40  # x and y assis limits
 graph = tkGraph(window, xl, yl)  # calling the function
 
@@ -179,14 +179,13 @@ while aux and not keyboard.is_pressed('q'):
         window.update()
         sleep(.2)
     except Exception:
-        aux = False
+        aux = False'''
 
-# qtdObj = int(input("Quantidade de objetos (máx. 32): "))
-'''qtdObj = 32
-graph = tkGraph(window, 10, 20)
+qtdObj = 32
+graph = tkGraph(window, 25, 50)
 print((crr.connect(qtdObj))[1])
-for _ in range(qtdObj):  # initializing objects
-    objs.append(tkPlot(1, 1))  # in the top left corner position
+for i in range(qtdObj):  # initializing objects
+    objs.append(tkPlot(1, 1, i))  # in the top left corner position
 
 while not keyboard.is_pressed('q'):  # plotting data from can
     try:
@@ -194,15 +193,17 @@ while not keyboard.is_pressed('q'):  # plotting data from can
         for i in range(qtdObj):
             x = data[1][i]
             y = data[2][i]
-            coords = getPos(x, y)
+            '''coords = getPos(x, y)
             x, y = coords[0], coords[1]
             coords = [x - (difLine/10), y - (difLine/10),
                       x + (difLine/10), y + (difLine/10)]
-            graph.coords(objs[i], coords)  # update the objects position
+            graph.coords(objs[i], coords)  # update the objects position'''
+            graph.delete(objs[i])
+            objs[i] = tkPlot(x, y, i)
             window.update()  # update the window
     except Exception:
         aux = False  # close the program if something is wrong
-print((crr.release())[1])'''
+print((crr.release())[1])
 
 '''tkGraph(window, 50, 80)
 tkPlot(0, 79.9)'''
