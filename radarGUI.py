@@ -8,6 +8,7 @@ from time import sleep  # noqa: F401
 import canReadRadar as crr  # noqa: F401
 
 window = tk.Tk()
+window.winfo_toplevel().title("Python Radar")
 frame = tk.Frame()
 cores = ('#000000', '#808080', '#0000FF', '#00BFFF',
          '#800080', '#8B008B', '#B0C4DE', '#800000',
@@ -299,9 +300,9 @@ def stopPlot():
     global aux
     if aux:
         aux = False
-        release = crr.release()
+        '''release = crr.release()
         messagebox.showinfo(release[1],
-                            'Can released')
+                            'Can released')'''
     else:
         pass
 
@@ -313,7 +314,7 @@ menu = tk.Canvas(frame, width=dims[0],
                  height=(dims[1]/.8)*.2,
                  background='#3297a8', bd=0, highlightthickness=0)
 B1 = tk.Button(menu, text="Resize", command=resizeCanvas)
-B2 = tk.Button(menu, text="Start", command=plotOnline)
+B2 = tk.Button(menu, text="Start", command=startPlot)
 B3 = tk.Button(menu, text="Stop", command=stopPlot)
 E1 = tk.Entry(menu, bd=5, width=3)
 E2 = tk.Entry(menu, bd=5, width=3)

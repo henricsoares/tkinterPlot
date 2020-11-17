@@ -19,9 +19,6 @@ def connect():
         return([True, result[1].decode()])
 
 
-auxx = True
-
-
 def release():
     # Release the Channel
     result = objPCAN.Uninitialize(pcb.PCAN_USBBUS1)
@@ -54,8 +51,8 @@ def canRead(conection):
                        != 'SNA' and can_port['DistLaneLineRt_Cval_MPC'] != 'SNA'  # noqa: E501
                        ):
                         lanes = [0.0, 0.0]
-                        lanes[0] = can_port['DistLaneLineLt_Cval_MPC']
-                        lanes[1] = can_port['DistLaneLineRt_Cval_MPC']
+                        lanes[0] = -can_port['DistLaneLineLt_Cval_MPC']
+                        lanes[1] = -can_port['DistLaneLineRt_Cval_MPC']
                         aux = False
                         return([True, lanes])
                     else:
@@ -74,6 +71,7 @@ def canRead(conection):
 
 '''status = connect()
 print(status[1])
+auxx = True
 while not keyboard.is_pressed('q') and auxx:
     print(canRead(status[0]))
  print(objPCAN.Read(pcb.PCAN_USBBUS1))
