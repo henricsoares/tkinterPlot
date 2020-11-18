@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sudo python3 /home/pi/Desktop/ldwPython.py
+sudo python3 /home/pi/Desktop/pythonLDW.py
