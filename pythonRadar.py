@@ -30,26 +30,46 @@ class App(tk.Frame):
         self.x, self.y = 20, 40
         self.qtdObj = 32
         self.aux = False
+        self.conecction = tk.BooleanVar()
+        self.plotting = tk.BooleanVar()
         self.canvas = self.tkGraph()
         self.menu = tk.Canvas(self.frame, width=self.lado,
                               height=(self.cima/.8)*.2,
                               background='#3297a8', bd=0, highlightthickness=0)
         self.B1 = tk.Button(self.menu, text="Resize",
                             command=self.resizeCanvas)
-        self.B2 = tk.Button(self.menu, text="Start", command=self.startPlot)
-        self.B3 = tk.Button(self.menu, text="Stop", command=self.stopPlot)
+        self.start = tk.Radiobutton(self.menu, text="Start",
+                                    command=self.startStop,
+                                    variable=self.plotting, value=True,
+                                    indicatoron=0)
+        self.stop = tk.Radiobutton(self.menu, text="Stop",
+                                   command=self.startStop,
+                                   variable=self.plotting, value=False,
+                                   indicatoron=0)
+        self.online = tk.Radiobutton(self.menu, text="Online",
+                                     command=self.changeMode,
+                                     variable=self.conecction, value=True,
+                                     indicatoron=0)
+        self.offline = tk.Radiobutton(self.menu, text="Offline",
+                                      command=self.changeMode,
+                                      variable=self.conecction, value=False,
+                                      indicatoron=0)
         self.E1 = tk.Entry(self.menu, bd=5, width=3)
         self.E2 = tk.Entry(self.menu, bd=5, width=3)
         self.L1 = tk.Label(self.menu, text="X")
         self.L2 = tk.Label(self.menu, text="Y")
+        self.mode = tk.Label(self.menu, text="Mode:")
         self.canvas.pack(side=tk.TOP)
         self.L1.pack(side=tk.LEFT)
         self.E1.pack(side=tk.LEFT)
         self.L2.pack(side=tk.LEFT)
         self.E2.pack(side=tk.LEFT)
         self.B1.pack(side=tk.LEFT, padx=(0, 50))
-        self.B3.pack(side=tk.RIGHT)
-        self.B2.pack(side=tk.RIGHT)
+        self.online.pack(side=tk.RIGHT)
+        self.offline.pack(side=tk.RIGHT)
+        self.mode.pack(side=tk.RIGHT)
+        self.stop.pack(side=tk.RIGHT, padx=(0, 50))
+        self.start.pack(side=tk.RIGHT)
         self.menu.pack(side=tk.TOP)
 
     def tkGraph(self):
@@ -116,12 +136,35 @@ class App(tk.Frame):
                   self.difLine, coY]
         canvas.create_polygon(points, outline='black',
                               fill='#28d8ff', width=2)
-        lineX1 = canvas.create_line(self.lado/2, self.difLine, self.lado/2, self.cima - self.difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
-        lineX2 = canvas.create_line(self.lado * (.25) + (self.difLine / 2), self.difLine, self.lado * (.25) + (self.difLine / 2), self.cima - self.difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
-        lineX3 = canvas.create_line(self.lado * (.75) - (self.difLine / 2), self.difLine, self.lado * (.75) - (self.difLine / 2), self.cima - self.difLine, fill='#5F9EA0', width=2)  # noqa: F841, E501
-        lineY1 = canvas.create_line(self.difLine, self.cima/2, self.lado - self.difLine, self.cima/2, fill='#5F9EA0', width=2)  # noqa: F841, E501
-        lineY2 = canvas.create_line(self.difLine, self.cima * (.25) + (self.difLine / 2), self.lado - self.difLine, self.cima * (.25) + (self.difLine / 2), fill='#5F9EA0', width=2)  # noqa: F841, E501
-        lineY3 = canvas.create_line(self.difLine, self.cima * (.75) - (self.difLine / 2), self.lado - self.difLine, self.cima * (.75) - (self.difLine / 2), fill='#5F9EA0', width=2)  # noqa: F841, E501
+        canvas.create_line(self.lado/2,
+                           self.difLine,
+                           self.lado/2,
+                           self.cima - self.difLine,
+                           fill='#5F9EA0', width=2)
+        canvas.create_line(self.lado * (.25) + (self.difLine / 2),
+                           self.difLine,
+                           self.lado * (.25) + (self.difLine / 2),
+                           self.cima - self.difLine,
+                           fill='#5F9EA0', width=2)
+        canvas.create_line(self.lado * (.75) - (self.difLine / 2),
+                           self.difLine,
+                           self.lado * (.75) - (self.difLine / 2),
+                           self.cima - self.difLine,
+                           fill='#5F9EA0', width=2)
+        canvas.create_line(self.difLine, self.cima/2,
+                           self.lado - self.difLine,
+                           self.cima/2,
+                           fill='#5F9EA0', width=2)
+        canvas.create_line(self.difLine,
+                           self.cima * (.25) + (self.difLine / 2),
+                           self.lado - self.difLine,
+                           self.cima * (.25) + (self.difLine / 2),
+                           fill='#5F9EA0', width=2)
+        canvas.create_line(self.difLine,
+                           self.cima * (.75) - (self.difLine / 2),
+                           self.lado - self.difLine,
+                           self.cima * (.75) - (self.difLine / 2),
+                           fill='#5F9EA0', width=2)
 
     def resizeCanvas(self):
         if self.E1.get() != '' and self.E2.get() != '':
@@ -242,78 +285,93 @@ class App(tk.Frame):
             self.canvas.delete(self.objs[i])
             self.master.update()
 
-    def startPlot(self):
-        if not self.aux:
-            self.aux = True
-            self.clearObjs()
-            self.objs = []
-            self.objsCoords = []
-            for i in range(self.qtdObj):
-                self.objsCoords.append([random.uniform(-(1.1*self.x),
-                                        1.1*self.x),
-                                        random.uniform(self.y/2,
-                                        1.1*self.y)])
-                self.objs.append(self.tkPlot(self.objsCoords[i][0],
-                                 self.objsCoords[i][1], i))
+    def startStop(self):
+        if self.plotting.get():
+            if not self.conecction.get():
+                if not self.aux:
+                    self.aux = True
+                    self.clearObjs()
+                    self.objs = []
+                    self.objsCoords = []
+                    for i in range(self.qtdObj):
+                        self.objsCoords.append([random.uniform(-(1.1*self.x),
+                                                1.1*self.x),
+                                                random.uniform(self.y/2,
+                                                1.1*self.y)])
+                        self.objs.append(self.tkPlot(self.objsCoords[i][0],
+                                         self.objsCoords[i][1], i))
 
-            while self.aux:
-                try:
-                    for i in range(len(self.objs)):
-                        xx, yy = random.uniform(self.objsCoords[i][0]*.95,
-                                                self.objsCoords[i][0]*1.05), random.uniform(self.objsCoords[i][1]*.95,  # noqa: E501
-                                                                                            self.objsCoords[i][1]*1.05)  # noqa: E501
-                        self.canvas.delete(self.objs[i])
-                        self.objs[i] = self.tkPlot(xx, yy, i)
-                    self.master.update()
-                    sleep(.15)
-                except Exception:
-                    self.aux = False
-                pass
+                    while self.aux:
+                        try:
+                            for i in range(len(self.objs)):
+                                xx, yy = random.uniform(self.objsCoords[i][0]*.95,  # noqa: E501
+                                                        self.objsCoords[i][0]*1.05), random.uniform(self.objsCoords[i][1]*.95,  # noqa: E501
+                                                                                                    self.objsCoords[i][1]*1.05)  # noqa: E501
+                                self.canvas.delete(self.objs[i])
+                                self.objs[i] = self.tkPlot(xx, yy, i)
+                            self.master.update()
+                            sleep(.15)
+                        except Exception:
+                            self.aux = False
+                        pass
+                else:
+                    pass
+            else:
+                self.plotOnline()
         else:
-            pass
-
-    def stopPlot(self):
-        if self.aux:
-            self.clearObjs()
-            self.aux = False
-            '''release = crr.release()
-            messagebox.showinfo(release[1],
-                                'Can released')'''
-        else:
-            pass
-
-    def plotOnline(self):
-        connect = crr.connect(self.qtdObj)
-        messagebox.showinfo(connect[1],
-                            "Connection ok")
-        if connect[0]:
-            if not self.aux:
-                self.aux = True
-                for i in range(len(self.objs)):
-                    self.canvas.delete(self.objs[i])
-                    self.master.update()
-                self.objs = []
-                data = crr.read(connect[0])
-                xRead = data[1]
-                yRead = data[2]
-                for i in range(self.qtdObj):
-                    self.objs.append(self.tkPlot(xRead[i], yRead[i], i))
-                while self.aux:
-                    try:
-                        data = crr.read(connect[0])
-                        xRead = data[1]
-                        yRead = data[2]
-                        for i in range(len(self.objs)):
-                            self.canvas.delete(self.objs[i])
-                            self.objs[i] = self.tkPlot(xRead[i], yRead[i], i)
-                        self.master.update()
-                    except Exception:
-                        self.aux = False
+            if self.aux:
+                self.clearObjs()
+                self.aux = False
             else:
                 pass
+
+    def plotOnline(self):
+        if not self.aux:
+            self.aux = True
+            for i in range(len(self.objs)):
+                self.canvas.delete(self.objs[i])
+                self.master.update()
+            self.objs = []
+            data = crr.read(True)
+            xRead = data[1]
+            yRead = data[2]
+            for i in range(self.qtdObj):
+                self.objs.append(self.tkPlot(xRead[i], yRead[i], i))
+            while self.aux:
+                try:
+                    data = crr.read(True)
+                    xRead = data[1]
+                    yRead = data[2]
+                    for i in range(len(self.objs)):
+                        self.canvas.delete(self.objs[i])
+                        self.objs[i] = self.tkPlot(xRead[i], yRead[i], i)
+                    self.master.update()
+                except Exception:
+                    crr.release()
+                    self.aux = False
         else:
-            messagebox.showinfo("No connection",
-                                connect[1])
+            pass
+
+    def changeMode(self):
+        if self.conecction.get() == 1:
+            connect = crr.connect(self.qtdObj)
+            if connect[0]:
+                messagebox.showinfo(connect[1],
+                                    "Connection ok")
+            else:
+                messagebox.showinfo("No connection",
+                                    connect[1])
+                self.online.deselect()
+                self.offline.select()
+        else:
+            release = crr.release()
+            messagebox.showinfo(release[1],
+                                'Can released')
+            self.aux = False
+            self.clearObjs()
+            if self.plotting.get():
+                self.start.deselect()
+                self.stop.select()
 
 
 root = tk.Tk()

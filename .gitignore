@@ -1,6 +1,8 @@
 __pycache__/
 .vscode/
 .mypy_cache/
+pythonLDW/
+pythonRadar/
 outros/
 .idea/
 car.ini
