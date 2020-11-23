@@ -69,8 +69,16 @@ class App(tk.Frame):
         self.x2, self.y2 = (self.lado/2)-(self.pw/2), (self.cima/2)-(self.ph/2)
 
     def _bell(self):
-        if self.lAux or self.rAux:
+        if self.lAux:
             self.canvas.bell()
+            self.canvas.itemconfig(app.ll, fill='red')
+        else:
+            self.canvas.itemconfig(app.ll, fill='yellow')
+        if self.rAux:
+            self.canvas.bell()
+            self.canvas.itemconfig(app.lr, fill='red')
+        else:
+            self.canvas.itemconfig(app.lr, fill='yellow')
 
     def blinkt(self):
         sleep(0.5)
@@ -79,20 +87,41 @@ class App(tk.Frame):
         self.y1, self.y2 = self.y2, self.y1
 
 
+conection = (canrd.connect())
+while not conection[0]:
+    print('Trying to connect...')
+    conection = (canrd.connect())
+    sleep(1)
+print(conection[1])
+conection = conection[0]
 root = tk.Tk()
 app = App(root)
 auxx = True
-'''conection = (canrd.connect())
-print(conection[1])
-conection = conection[0]'''
 while auxx:
     try:
-        # data = canrd.canRead(conection)
+        data = canrd.canRead(conection)
         '''left = float(input("Left: "))
-        right = float(input("Right: "))'''
-        app.left = round(random.uniform(-2, -1.5), 2)
-        app.right = round(random.uniform(1.5, 2), 2)
-        if True:  # data[0]:
+        right = float(input("Right: "))
+        app.left = round(random.uniform(-2, -1), 2)
+        app.right = round(random.uniform(1, 2), 2)
+        if keyboard.is_pressed('a'):
+            for i in range(0, 50, 10):
+                app.lab.place(x=app.labpos-i,
+                              y=(app.cima/2)-(app.ph/2))
+                root.update()
+                sleep(.00001)
+            app.labpos -= 50
+        elif keyboard.is_pressed('d'):
+            for i in range(0, 50, 10):
+                app.lab.place(x=app.labpos+i,
+                              y=(app.cima/2)-(app.ph/2))
+                root.update()
+                sleep(.00001)
+            app.labpos += 50'''
+        if data[0]:
+            data = data[1]
+            app.left = round(data[1], 2)
+            app.right = round(data[0], 2)
             app.canvas.itemconfigure(app.ldValue, text=app.left)
             app.canvas.itemconfigure(app.rdValue, text=app.right)
             if app.left < 0 < app.right:
@@ -122,7 +151,7 @@ while auxx:
                     app.labpos = ((ampl - app.left)*app.metro) + (app.lado/2)-(app.pw/2)  # noqa: E501
                     app.right, app.left = -ampl*app.metro+(app.lado/2), ampl*app.metro+(app.lado/2)  # noqa: E501
 
-            app.left, app.right = -ampl*app.metro+(app.lado/2), ampl*app.metro+(app.lado/2)  # noqa: E501
+            # app.left, app.right = -ampl*app.metro+(app.lado/2), ampl*app.metro+(app.lado/2)  # noqa: E501
             app.llPos[0][0] = app.left
             app.llPos[1][0] = app.left
             app.lrPos[0][0] = app.right
@@ -131,34 +160,6 @@ while auxx:
                               app.lrPos[1][0], app.lrPos[1][1])
             app.canvas.coords(app.ll, app.llPos[0][0], app.llPos[0][1],
                               app.llPos[1][0], app.llPos[1][1])
-            '''if keyboard.is_pressed('a'):
-                for i in range(50):
-                    app.lab.place(x=app.labpos-i,
-                                    y=(app.cima/2)-(app.ph/2))
-                    root.update()
-                    sleep(.0001)
-                app.labpos -= 50
-            elif keyboard.is_pressed('d'):
-                for i in range(50):
-                    app.lab.place(x=app.labpos+i,
-                                    y=(app.cima/2)-(app.ph/2))
-                    root.update()
-                    sleep(.0001)
-                app.labpos += 50'''
-            if (app.right - app.pw*1.05) < app.labpos < (app.pw*.05 + app.right):  # noqa: E501
-                app.canvas.itemconfig(app.lr, fill='red')
-                app.rAux = True
-                root.after(500, app._bell)
-            else:
-                app.rAux = False
-                app.canvas.itemconfig(app.lr, fill='yellow')
-            if (app.left - app.pw*1.05) < app.labpos < (app.pw*.05 + app.left):  # noqa: E501
-                app.canvas.itemconfig(app.ll, fill='red')
-                app.lAux = True
-                root.after(500, app._bell)
-            else:
-                app.lAux = False
-                app.canvas.itemconfig(app.ll, fill='yellow')
             app.canvas.coords(app.lLabel, app.llPos[0][0], 15)
             app.canvas.coords(app.rLabel, app.lrPos[0][0], 15)
             app.canvas.coords(app.ldValue, app.llPos[0][0]+(.05*app.lado),
@@ -166,10 +167,27 @@ while auxx:
             app.canvas.coords(app.rdValue, app.lrPos[0][0]+(.05*app.lado),
                               15)
             app.lab.place(x=app.labpos, y=(app.cima/2)-(app.ph/2))
+            if (app.right - app.pw*1.05) < app.labpos < (app.pw*.05 + app.right):  # noqa: E501
+                # app.canvas.itemconfig(app.lr, fill='red')
+                app.rAux = True
+                root.after(500, app._bell)
+            else:
+                app.rAux = False
+                root.after(500, app._bell)
+                # app.canvas.itemconfig(app.lr, fill='yellow')
+            if (app.left - app.pw*1.05) < app.labpos < (app.pw*.05 + app.left):  # noqa: E501
+                # app.canvas.itemconfig(app.ll, fill='red')
+                app.lAux = True
+                root.after(500, app._bell)
+            else:
+                app.lAux = False
+                root.after(500, app._bell)
+                # app.canvas.itemconfig(app.ll, fill='yellow')
         else:
             app.blinkt()
         root.update()
     except Exception:
-        # print((canrd.release())[1])
+        print((canrd.release())[1])
         auxx = False
-    sleep(.2)
+    # sleep(.2)
+print((canrd.release())[1])
